@@ -42,12 +42,12 @@ app.get('/', (req, res) => {
 
 // Routes
 const authRoutes = require('./routes/auth');
-//const equipmentRoutes = require('./routes/equipment');
-//const requestRoutes = require('./routes/requests');
+const equipmentRoutes = require('./routes/equipment');
+const requestRoutes = require('./routes/requests');
 
 app.use('/api/auth', authRoutes);
-//app.use('/api/equipment', equipmentRoutes);
-//app.use('/api/requests', requestRoutes);
+app.use('/api/equipment', equipmentRoutes);
+app.use('/api/requests', requestRoutes);
 
 // Start the server
 app.listen(PORT, () => {
