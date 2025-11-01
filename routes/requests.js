@@ -16,11 +16,25 @@ router.post('/', protect, async (req, res) => {
     const user_id = req.user.id;
     const { equipment_id, quantity, admin_notes, return_date } = req.body;
 
-    if (!equipment_id || !quantity || !return_date || quantity <= 0) {
-        debugger;
-        return res.status(400).json({ message: 'Missing or invalid equipment_id, quantity, or return_date.' });
-    }
+    // if (!equipment_id || !quantity || !return_date || quantity <= 0) {
+    //     debugger;
+    //     return res.status(400).json({ message: 'Missing or invalid equipment_id, quantity, or return_date.' });
+    // }
 
+    if (!equipment_id ) {
+        
+        return res.status(400).json({ message: 'Missing or invalid equipment_id' });
+    }
+ if (!quantity ) {
+        
+        return res.status(400).json({ message: 'Missing or invalid quantity' });
+    }
+    if (!return_date ) {    
+        return res.status(400).json({ message: 'Missing or invalid return_date' });
+    }
+    if (quantity <= 0) {
+        return res.status(400).json({ message: 'Quantity must be greater than zero.' });
+    }
     try {
         // 1. Check if equipment exists and is available
         const [equipment] = await db.execute('SELECT available_quantity FROM equipment_management.equipment_data WHERE equipment_id = ?', [equipment_id]);
