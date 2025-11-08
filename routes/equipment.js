@@ -39,6 +39,26 @@ router.get('/', async (req, res) => {
     }
 });
 
+// @route GET /api/equipment/:id
+// @desc GET equipment details by ID
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [equipment] = await db.execute(
+            `select e.*, c.name as category_name
+             from equipment_management.equipment_data e
+             join equipment_management.catagory_data c on e.category_id = c.category_id
+             where e.equipment_id = ?`,
+            [id]
+        );
+        if (equipment.length === 0) return res.status(404).json({ message: 'Equipment not found' });
+        res.json(equipment[0]);
+    } catch (error) {
+        console.error('Error fetching equipment by ID:', error);
+        res.status(500).json({ message: 'Server error fetching equipment details' });
+    }
+});
+
 // @route POST /api/equipment
 // @desc Add new equipment (Only Admin can add inventory)
 // @access Private (Admin only)
@@ -83,7 +103,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
     // Advanced: Update available_quantity based on change in total_quantity 
     // We fetch the current quantities and calculate the difference.
     try {
-        const [currentEquipment] = await db.execute('SELECT total_quantity, available_quantity FROM quipment_data WHERE equipment_id = ?', [id]);
+        const [currentEquipment] = await db.execute('SELECT total_quantity, available_quantity FROM equipment_management.equipment_data WHERE equipment_id = ?', [id]);
         if (currentEquipment.length === 0) {
             return res.status(404).json({ message: 'Equipment not found' });
         }
@@ -102,8 +122,9 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
         }
         
         // Update the item
+        console.log('New available quantity calculated:', newAvailableQuantity);
         const [result] = await db.execute(
-            'UPDATE quipment_data SET name = ?, category_id = ?, total_quantity = ?, available_quantity = ?, condition = ? WHERE equipment_id = ?',
+            'UPDATE equipment_management.equipment_data SET name = ?, category_id = ?, total_quantity = ?, available_quantity = ?, `condition` = ? WHERE equipment_id = ?',
             [name, category_id, total_quantity, newAvailableQuantity, condition, id]
         );
 
@@ -127,7 +148,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     // IMPORTANT: In a real app, you would check for active loans (status='issued') first.
     // For this phase, we allow direct deletion for simplicity.
     try {
-        const [result] = await db.execute('DELETE FROM Equipment WHERE equipment_id = ?', [id]);
+        const [result] = await db.execute('DELETE FROM equipment_data WHERE equipment_id = ?', [id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Equipment not found' });
