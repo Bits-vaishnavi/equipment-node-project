@@ -1,29 +1,65 @@
 # Equipment Management System API Documentation
 
-## Authentication APIs
+## Authentication APIs — Signup (Student or Staff)
 
-### 1. Register Student
+### Register (Student or Staff)
 - **Endpoint:** `POST /api/auth/signup`
 - **Role:** Public
-- **Request Body:**
+- **Purpose:** User chooses to register either as a student or as staff. Registration validates:
+  - Students against RegisteredStudents.prn_number
+  - Staff against registeredstaff.email
+
+- **Request Body (student):**
 ```json
 {
-    "username": "string",
-    "password": "string",
-    "full_name": "string",
-    "prn_number": "string"
+  "username": "string",
+  "password": "string",
+  "full_name": "string",
+  "prn_number": "string",
+  "user_type": "student"
 }
 ```
-- **Response:**
+
+- **Request Body (staff):**
 ```json
 {
-    "user_id": "number",
-    "username": "string",
-    "role": "student",
-    "message": "string",
-    "token": "string"
+  "username": "string",
+  "password": "string",
+  "full_name": "string",
+  "email": "string",
+  "user_type": "staff"
 }
 ```
+
+- **Behavior / Validation:**
+  - If user_type === "student":
+    - prn_number is required.
+    - prn_number must exist in RegisteredStudents table.
+    - prn_number must not already be claimed in user_data.prn_number.
+  - If user_type === "staff":
+    - email is required.
+    - email must exist in registeredstaff table.
+    - email must not already be claimed in user_data.email.
+  - username must be unique.
+  - Password is hashed (bcrypt) before storage.
+  - Role saved as `student` or `staff` in user_data.role.
+
+- **Success Response (201):**
+```json
+{
+  "user_id": 123,
+  "username": "jdoe",
+  "role": "student",
+  "message": "User registered successfully as student.",
+  "token": "jwt.token.here"
+}
+```
+
+- **Common Error Responses:**
+  - 400 Bad Request — missing required fields or username already exists.
+  - 401 Unauthorized — PRN/email not found in RegisteredStudents/registeredstaff.
+  - 409 Conflict — PRN/email already registered.
+  - 500 Server Error — unexpected server/database error.
 
 ### 2. Login
 - **Endpoint:** `POST /api/auth/login`
