@@ -51,7 +51,7 @@ router.post('/', protect, async (req, res) => {
         // 2. Insert new request
         const [result] = await db.execute(
             'INSERT INTO equipment_management.request_data (user_id, equipment_id, quantity, return_date,admin_notes, status)VALUES (?, ?, ?, ?, ?,?)',
-            [user_id, equipment_id, quantity, return_date,admin_notes, 'pending']
+            [user_id, equipment_id, quantity, return_date,admin_notes, 'Pending']
         );
 
         res.status(201).json({ 
@@ -147,10 +147,10 @@ router.put('/:id/approve', protect, authorize(requestManagerRoles), async (req, 
         const [request] = await db.execute('SELECT equipment_id, quantity, status FROM equipment_management.request_data WHERE request_id = ?', [id]);
         
         if (request.length === 0) return res.status(404).json({ message: 'Request not found.' });
-        if (request[0].status !== 'pending') return res.status(400).json({ message: `Cannot approve request with status: ${request[0].status}.` });
+        if (request[0].status !== 'Pending') return res.status(400).json({ message: `Cannot approve request with status: ${request[0].status}.` });
 
         // Decrease stock and set status to 'approved'
-        await updateStockAndRequest(id, request[0].equipment_id, request[0].quantity, 'approved', false);
+        await updateStockAndRequest(id, request[0].equipment_id, request[0].quantity, 'Approved', false);
 
         res.json({ message: 'Request approved and stock reserved/decremented.' });
     } catch (error) {
@@ -167,7 +167,7 @@ router.put('/:id/reject', protect, authorize(requestManagerRoles), async (req, r
     try {
         const [result] = await db.execute(
             'UPDATE equipment_management.request_data SET status = ? WHERE request_id = ? AND status = ?',
-            ['rejected', id, 'pending']
+            ['Rejected', id, 'Pending']
         );
 
         if (result.affectedRows === 0) {
@@ -189,7 +189,7 @@ router.put('/:id/issue', protect, authorize(requestManagerRoles), async (req, re
     try {
         const [result] = await db.execute(
             'UPDATE equipment_management.request_data SET status = ? WHERE request_id = ? AND status = ?',
-            ['issued', id, 'approved']
+            ['Issued', id, 'Approved']
         );
 
         if (result.affectedRows === 0) {
@@ -212,10 +212,10 @@ router.put('/:id/return', protect, authorize(requestManagerRoles), async (req, r
         const [request] = await db.execute('SELECT equipment_id, quantity, status FROM equipment_management.request_data WHERE request_id = ?', [id]);
         
         if (request.length === 0) return res.status(404).json({ message: 'Request not found.' });
-        if (request[0].status !== 'issued') return res.status(400).json({ message: `Cannot return request with status: ${request[0].status}.` });
+        if (request[0].status !== 'Issued') return res.status(400).json({ message: `Cannot return request with status: ${request[0].status}.` });
 
-        // Increase stock and set status to 'returned'
-        await updateStockAndRequest(id, request[0].equipment_id, request[0].quantity, 'returned', true);
+        // Increase stock and set status to 'Returned'
+        await updateStockAndRequest(id, request[0].equipment_id, request[0].quantity, 'Returned', true);
 
         res.json({ message: 'Equipment return processed successfully, stock incremented.' });
     } catch (error) {

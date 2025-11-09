@@ -54,7 +54,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 
     try {
         const [result] = await db.execute(
-    'INSERT INTO equipment_management.equipment_data (`name`, `category_id`, `total_quantity`, `available_quantity`, `condition`) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO equipment_management.equipment_data (name, category_id, total_quantity, available_quantity, `condition`) VALUES (?, ?, ?, ?, ?)',
     [name, category_id, total_quantity, available_quantity, condition]
 );
 
@@ -83,7 +83,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
     // Advanced: Update available_quantity based on change in total_quantity 
     // We fetch the current quantities and calculate the difference.
     try {
-        const [currentEquipment] = await db.execute('SELECT total_quantity, available_quantity FROM quipment_data WHERE equipment_id = ?', [id]);
+        const [currentEquipment] = await db.execute('SELECT total_quantity, available_quantity FROM equipment_management.equipment_data WHERE equipment_id = ?', [id]);
         if (currentEquipment.length === 0) {
             return res.status(404).json({ message: 'Equipment not found' });
         }
@@ -103,7 +103,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
         
         // Update the item
         const [result] = await db.execute(
-            'UPDATE quipment_data SET name = ?, category_id = ?, total_quantity = ?, available_quantity = ?, condition = ? WHERE equipment_id = ?',
+            'UPDATE equipment_management.equipment_data SET name = ?, category_id = ?, total_quantity = ?, available_quantity = ?, `condition` = ? WHERE equipment_id = ?',
             [name, category_id, total_quantity, newAvailableQuantity, condition, id]
         );
 
@@ -127,7 +127,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     // IMPORTANT: In a real app, you would check for active loans (status='issued') first.
     // For this phase, we allow direct deletion for simplicity.
     try {
-        const [result] = await db.execute('DELETE FROM Equipment WHERE equipment_id = ?', [id]);
+        const [result] = await db.execute('DELETE FROM equipment_management.equipment_data WHERE `equipment_id` = ?', [id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Equipment not found' });
